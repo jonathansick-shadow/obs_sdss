@@ -1,7 +1,7 @@
-# 
+#
 # LSST Data Management System
 # Copyright 2008, 2009, 2010 LSST Corporation.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -9,14 +9,14 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 import sys
@@ -31,6 +31,7 @@ import lsst.meas.astrom.sip as sip
 
 deg2rad = num.pi / 180.
 rad2deg = 180. / num.pi
+
 
 class CoordinateMapper(object):
     # COMMENT mu nu are defined as:
@@ -61,49 +62,51 @@ class CoordinateMapper(object):
         self.dRow1 = dRow1
         self.dRow2 = dRow2
         self.dRow3 = dRow3
-       
+
         self.dCol0 = dCol0
         self.dCol1 = dCol1
         self.dCol2 = dCol2
         self.dCol3 = dCol3
-        
-        self.a     = a
-        self.b     = b
-        self.c     = c
-        self.d     = d
-        self.e     = e
-        self.f     = f
 
-        self.cOff  = cOffset
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
+        self.e = e
+        self.f = f
+
+        self.cOff = cOffset
 
     def xyToMuNu(self, x, y):
-        rowm     = (y+self.cOff) + self.dRow0 + self.dRow1*(x+self.cOff) + self.dRow2*((x+self.cOff)**2) + self.dRow3*((x+self.cOff)**3)
-        colm     = (x+self.cOff) + self.dCol0 + self.dCol1*(x+self.cOff) + self.dCol2*((x+self.cOff)**2) + self.dCol3*((x+self.cOff)**3)
-        
-        mu_deg   = self.a + self.b * rowm + self.c * colm
-        nu_deg   = self.d + self.e * rowm + self.f * colm
-        mu_rad   = mu_deg * deg2rad
-        nu_rad   = nu_deg * deg2rad
-        
+        rowm = (y+self.cOff) + self.dRow0 + self.dRow1*(x+self.cOff) + \
+            self.dRow2*((x+self.cOff)**2) + self.dRow3*((x+self.cOff)**3)
+        colm = (x+self.cOff) + self.dCol0 + self.dCol1*(x+self.cOff) + \
+            self.dCol2*((x+self.cOff)**2) + self.dCol3*((x+self.cOff)**3)
+
+        mu_deg = self.a + self.b * rowm + self.c * colm
+        nu_deg = self.d + self.e * rowm + self.f * colm
+        mu_rad = mu_deg * deg2rad
+        nu_rad = nu_deg * deg2rad
+
         return mu_rad, nu_rad
 
     def muNuToRaDec(self, mu_rad, nu_rad):
-        x2  = num.cos(mu_rad - self.node_rad) * num.cos(nu_rad)
-        y2  = num.sin(mu_rad - self.node_rad) * num.cos(nu_rad)
-        z2  = num.sin(nu_rad)
-        y1  = y2 * num.cos(self.incl_rad) - z2 * num.sin(self.incl_rad)
-        z1  = y2 * num.sin(self.incl_rad) + z2 * num.cos(self.incl_rad)
-        
-        ra_rad  = num.arctan2(y1, x2) + self.node_rad
+        x2 = num.cos(mu_rad - self.node_rad) * num.cos(nu_rad)
+        y2 = num.sin(mu_rad - self.node_rad) * num.cos(nu_rad)
+        z2 = num.sin(nu_rad)
+        y1 = y2 * num.cos(self.incl_rad) - z2 * num.sin(self.incl_rad)
+        z1 = y2 * num.sin(self.incl_rad) + z2 * num.cos(self.incl_rad)
+
+        ra_rad = num.arctan2(y1, x2) + self.node_rad
         dec_rad = num.arcsin(z1)
 
         return ra_rad, dec_rad
-        
+
     def xyToRaDec(self, x, y):
         mu_rad, nu_rad = self.xyToMuNu(x, y)
         return self.muNuToRaDec(mu_rad, nu_rad)
 
-        
+
 def createWcs(x, y, mapper, order = 4, cOffset = 1.0):
     # Here cOffset reflects the differences between FITS coords (LLC =
     # 1,1) and LSST coords (LLC = 0,0).  That is, when creating a Wcs
@@ -113,14 +116,14 @@ def createWcs(x, y, mapper, order = 4, cOffset = 1.0):
     ra_rad, dec_rad = mapper.xyToRaDec(x, y)
 
     # Minimial table for sky coordinates
-    catTable    = afwTable.SimpleTable.make(afwTable.SimpleTable.makeMinimalSchema())
+    catTable = afwTable.SimpleTable.make(afwTable.SimpleTable.makeMinimalSchema())
 
     # Minimial table + centroids for focal plane coordintes
-    srcSchema   = afwTable.SourceTable.makeMinimalSchema()
+    srcSchema = afwTable.SourceTable.makeMinimalSchema()
     centroidKey = afwTable.Point2DKey.addFields(srcSchema, "centroid", "centroid", "pixels")
-    flagKey     = srcSchema.addField("centroid_flag", type="Flag")
-    
-    srcTable    = afwTable.SourceTable.make(srcSchema)
+    flagKey = srcSchema.addField("centroid_flag", type="Flag")
+
+    srcTable = afwTable.SourceTable.make(srcSchema)
     srcTable.defineCentroid("centroid")
 
     matches = []
@@ -128,11 +131,11 @@ def createWcs(x, y, mapper, order = 4, cOffset = 1.0):
         src = srcTable.makeRecord()
         src.set(centroidKey.getX(), x[i])
         src.set(centroidKey.getY(), y[i])
-        
+
         cat = catTable.makeRecord()
-        cat.set(catTable.getCoordKey().getRa(),  afwGeom.Angle(ra_rad[i],  afwGeom.radians))
+        cat.set(catTable.getCoordKey().getRa(), afwGeom.Angle(ra_rad[i], afwGeom.radians))
         cat.set(catTable.getCoordKey().getDec(), afwGeom.Angle(dec_rad[i], afwGeom.radians))
-    
+
         mat = afwTable.ReferenceMatch(cat, src, 0.0)
         matches.append(mat)
 
@@ -150,13 +153,13 @@ def createWcs(x, y, mapper, order = 4, cOffset = 1.0):
     # CD1_2   = RA  degrees per row pixel
     # CD2_1   = DEC degrees per column pixel
     # CD2_2   = DEC degrees per row pixel
-    LLl   = mapper.xyToRaDec(0., 0.)
-    ULl   = mapper.xyToRaDec(0., 1.)
-    LRl   = mapper.xyToRaDec(1., 0.)
+    LLl = mapper.xyToRaDec(0., 0.)
+    ULl = mapper.xyToRaDec(0., 1.)
+    LRl = mapper.xyToRaDec(1., 0.)
 
-    LLc   = afwCoord.Coord(afwGeom.Point2D(LLl[0], LLl[1]), afwGeom.radians)
-    ULc   = afwCoord.Coord(afwGeom.Point2D(ULl[0], ULl[1]), afwGeom.radians)
-    LRc   = afwCoord.Coord(afwGeom.Point2D(LRl[0], LRl[1]), afwGeom.radians)
+    LLc = afwCoord.Coord(afwGeom.Point2D(LLl[0], LLl[1]), afwGeom.radians)
+    ULc = afwCoord.Coord(afwGeom.Point2D(ULl[0], ULl[1]), afwGeom.radians)
+    LRc = afwCoord.Coord(afwGeom.Point2D(LRl[0], LRl[1]), afwGeom.radians)
 
     cdN_1 = LLc.getTangentPlaneOffset(LRc)
     cdN_2 = LLc.getTangentPlaneOffset(ULc)
@@ -164,9 +167,10 @@ def createWcs(x, y, mapper, order = 4, cOffset = 1.0):
     cd1_2, cd2_2 = cdN_2[0].asDegrees(), cdN_2[1].asDegrees()
 
     linearWcs = afwImage.makeWcs(crval, crpix, cd1_1, cd2_1, cd1_2, cd2_2)
-    wcs       = sip.makeCreateWcsWithSip(matches, linearWcs, order).getNewWcs()
+    wcs = sip.makeCreateWcsWithSip(matches, linearWcs, order).getNewWcs()
 
     return wcs
+
 
 def validate(xs, ys, mapper, wcs):
     dists = []
@@ -174,27 +178,27 @@ def validate(xs, ys, mapper, wcs):
         tuple1 = mapper.xyToRaDec(xs[i], ys[i])
         coord1 = afwCoord.Coord(afwGeom.Point2D(tuple1[0], tuple1[1]), afwGeom.radians)
         coord2 = wcs.pixelToSky(xs[i], ys[i])
-        dist   = coord1.angularSeparation(coord2).asArcseconds()
+        dist = coord1.angularSeparation(coord2).asArcseconds()
         dists.append(dist)
 
     print num.mean(dists), num.std(dists)
 
-    
+
 def convertasTrans(infile, filt, camcol, field, stepSize = 50, doValidate = False):
     hdulist = pyfits.open(infile)
     t0 = hdulist[0].header['ccdarray']
     if t0 != 'photo':
         raise RuntimeError, '*** Cannot support ccdarray: %s' % t0
-    
-    camcols  = hdulist[0].header['camcols']
-    filters  = hdulist[0].header['filters']
+
+    camcols = hdulist[0].header['camcols']
+    filters = hdulist[0].header['filters']
     node_deg = hdulist[0].header['node']
     incl_deg = hdulist[0].header['incl']
     node_rad = node_deg * deg2rad
     incl_rad = incl_deg * deg2rad
 
-    cList   = map(int, camcols.split())
-    fList   = filters.split()
+    cList = map(int, camcols.split())
+    fList = filters.split()
 
     try:
         cIdx = cList.index(camcol)
@@ -207,15 +211,15 @@ def convertasTrans(infile, filt, camcol, field, stepSize = 50, doValidate = Fals
     except:
         print "Cannot extract data for filter %s" % (filt)
         return None
-    
-    ext  = cIdx * len(fList) + (fIdx + 1)
+
+    ext = cIdx * len(fList) + (fIdx + 1)
     ehdr = hdulist[ext].header
     edat = hdulist[ext].data
-    
+
     if ehdr['CAMCOL'] != camcol or ehdr['FILTER'] != filt:
         print "Extracted incorrect header; fix me"
         return None
-    
+
     fields = edat.field('field').tolist()
     try:
         fIdx = fields.index(field)
@@ -238,21 +242,22 @@ def convertasTrans(infile, filt, camcol, field, stepSize = 50, doValidate = Fals
     ccCol = edat.field('ccCol')[fIdx]
     riCut = edat.field('riCut')[fIdx]
 
-    a     = edat.field('a')[fIdx]
-    b     = edat.field('b')[fIdx]
-    c     = edat.field('c')[fIdx]
-    d     = edat.field('d')[fIdx]
-    e     = edat.field('e')[fIdx]
-    f     = edat.field('f')[fIdx]
-        
+    a = edat.field('a')[fIdx]
+    b = edat.field('b')[fIdx]
+    c = edat.field('c')[fIdx]
+    d = edat.field('d')[fIdx]
+    e = edat.field('e')[fIdx]
+    f = edat.field('f')[fIdx]
+
     # We need to fit for a TAN-SIP
-    x        = num.arange(0, 1489+stepSize, stepSize)
-    y        = num.arange(0, 2048+stepSize, stepSize)
-    coords   = num.meshgrid(x, y) 
-    xs       = num.ravel(coords[0]).astype(num.float)
-    ys       = num.ravel(coords[1]).astype(num.float)
-    mapper   = CoordinateMapper(node_rad, incl_rad, dRow0, dRow1, dRow2, dRow3, dCol0, dCol1, dCol2, dCol3, a, b, c, d, e, f)
-    wcs      = createWcs(xs, ys, mapper)
+    x = num.arange(0, 1489+stepSize, stepSize)
+    y = num.arange(0, 2048+stepSize, stepSize)
+    coords = num.meshgrid(x, y)
+    xs = num.ravel(coords[0]).astype(num.float)
+    ys = num.ravel(coords[1]).astype(num.float)
+    mapper = CoordinateMapper(node_rad, incl_rad, dRow0, dRow1, dRow2, dRow3,
+                              dCol0, dCol1, dCol2, dCol3, a, b, c, d, e, f)
+    wcs = createWcs(xs, ys, mapper)
 
     if doValidate:
         validate(xs, ys, mapper, wcs)
@@ -260,17 +265,17 @@ def convertasTrans(infile, filt, camcol, field, stepSize = 50, doValidate = Fals
     return wcs
 
 if __name__ == '__main__':
-    infile  = sys.argv[1]
-    filt    = sys.argv[2]
-    camcol  = int(sys.argv[3])
-    field   = int(sys.argv[4])
+    infile = sys.argv[1]
+    filt = sys.argv[2]
+    camcol = int(sys.argv[3])
+    field = int(sys.argv[4])
 
-    wcs     = convertasTrans(infile, filt, camcol, field, doValidate = True)
+    wcs = convertasTrans(infile, filt, camcol, field, doValidate = True)
 
     if len(sys.argv) > 5:
-        fpC     = sys.argv[5]
-        image   = afwImage.ImageF(fpC)
-        mi      = afwImage.MaskedImageF(image)
-        exp     = afwImage.ExposureF(mi, wcs)
+        fpC = sys.argv[5]
+        image = afwImage.ImageF(fpC)
+        mi = afwImage.MaskedImageF(image)
+        exp = afwImage.ExposureF(mi, wcs)
         exp.writeFits("/tmp/exp.fits")
-        
+

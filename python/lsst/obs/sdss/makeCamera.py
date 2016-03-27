@@ -1,7 +1,7 @@
-# 
+#
 # LSST Data Management System
 # Copyright 2008, 2009, 2010 LSST Corporation.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -9,14 +9,14 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 import os
@@ -25,16 +25,18 @@ import lsst.utils
 import lsst.afw.geom as afwGeom
 import lsst.afw.cameraGeom.utils as cameraGeomUtils
 from lsst.afw.cameraGeom import makeCameraFromCatalogs, CameraConfig, DetectorConfig,\
-                                SCIENCE, PIXELS, PUPIL, FOCAL_PLANE
+    SCIENCE, PIXELS, PUPIL, FOCAL_PLANE
 import lsst.afw.table as afwTable
 from lsst.obs.sdss.convertOpECalib import SdssCameraState
 
 #
 # Make an Amp
 #
+
+
 def addAmp(ampCatalog, i, eparams):
     """ Add an amplifier to an AmpInfoCatalog
-    
+
     @param ampCatalog: An instance of an AmpInfoCatalog object to fill with amp properties
     @param i which amplifier? (i == 0 ? left : right)
     @param eparams: Electronic parameters.  This is a list of tuples with (i, params), where params is a dictionary of
@@ -48,7 +50,7 @@ def addAmp(ampCatalog, i, eparams):
     height = 1361      # number of rows in a frame
     width = 1024       # number of data pixels read out through one amplifier
     nExtended = 8             # number of pixels in the extended register
-    nOverclock = 32           # number of (horizontal) overclock pixels 
+    nOverclock = 32           # number of (horizontal) overclock pixels
     #
     # Construct the needed bounding boxes given that geometrical information.
     #
@@ -59,7 +61,7 @@ def addAmp(ampCatalog, i, eparams):
     xtot = width + nExtended + nOverclock
     allPixels = afwGeom.BoxI(afwGeom.PointI(0, 0), afwGeom.ExtentI(xtot, height))
     biasSec = afwGeom.BoxI(afwGeom.PointI(nExtended if i == 0 else width, 0),
-                           afwGeom.ExtentI(nOverclock, height)) 
+                           afwGeom.ExtentI(nOverclock, height))
     dataSec = afwGeom.BoxI(afwGeom.PointI(nExtended + nOverclock if i == 0 else 0, 0),
                            afwGeom.ExtentI(width, height))
     emptyBox = afwGeom.BoxI()
@@ -72,14 +74,14 @@ def addAmp(ampCatalog, i, eparams):
     dataSec.shift(shiftp)
 
     record.setBBox(bbox)
-    record.setRawXYOffset(afwGeom.ExtentI(0,0))
-    record.setName('left' if i==0 else 'right')
-    record.setReadoutCorner(afwTable.LL if i==0 else afwTable.LR)    
+    record.setRawXYOffset(afwGeom.ExtentI(0, 0))
+    record.setName('left' if i == 0 else 'right')
+    record.setReadoutCorner(afwTable.LL if i == 0 else afwTable.LR)
     record.setGain(eparams['gain'])
     record.setReadNoise(eparams['readNoise'])
     record.setSaturation(int(eparams['fullWell']))
     record.setLinearityType('Proportional')
-    record.setLinearityCoeffs([1.,])
+    record.setLinearityCoeffs([1., ])
     record.setHasRawInfo(True)
     record.setRawFlipX(False)
     record.setRawFlipY(False)
@@ -92,6 +94,8 @@ def addAmp(ampCatalog, i, eparams):
 #
 # Make a Ccd out of 2 Amps
 #
+
+
 def makeCcd(ccdName, ccdId, offsetPoint):
     """make the information necessary to build a set detector
     @param ccdName: string name of the ccd
@@ -131,11 +135,13 @@ def makeCcd(ccdName, ccdId, offsetPoint):
     detConfig.pixelSize_y = pixelSize
     detConfig.transposeDetector = False
     detConfig.transformDict.nativeSys = PIXELS.getSysName()
-    return {'ccdConfig':detConfig, 'ampInfo':ampCatalog}
+    return {'ccdConfig': detConfig, 'ampInfo': ampCatalog}
 
 #
 # Make a Camera out of 6 dewars and 5 chips per dewar
 #
+
+
 def makeCamera(name="SDSS", outputDir=None):
     """Make a camera
     @param name: name of the camera
@@ -145,7 +151,7 @@ def makeCamera(name="SDSS", outputDir=None):
     camConfig = CameraConfig()
     camConfig.name = name
     camConfig.detectorList = {}
-    camConfig.plateScale = 16.5 # arcsec/mm
+    camConfig.plateScale = 16.5  # arcsec/mm
     pScaleRad = afwGeom.arcsecToRad(camConfig.plateScale)
     radialDistortCoeffs = [0.0, 1.0/pScaleRad]
     tConfig = afwGeom.TransformConfig()
@@ -155,9 +161,8 @@ def makeCamera(name="SDSS", outputDir=None):
     tConfig.transform.active.transform.coeffs = radialDistortCoeffs
     tmc = afwGeom.TransformMapConfig()
     tmc.nativeSys = FOCAL_PLANE.getSysName()
-    tmc.transforms = {PUPIL.getSysName():tConfig}
+    tmc.transforms = {PUPIL.getSysName(): tConfig}
     camConfig.transformDict = tmc
-
 
     ccdId = 0
     ampInfoCatDict = {}
@@ -181,6 +186,8 @@ def makeCamera(name="SDSS", outputDir=None):
 #
 # Print a Ccd
 #
+
+
 def printCcd(title, ccd, trimmed=True, indent=""):
     """Print info about a ccd
     @param title: title for the ccd
@@ -195,23 +202,25 @@ def printCcd(title, ccd, trimmed=True, indent=""):
         allPixels = cameraGeomUtils.calcRawCcdBBox(ccd)
     print indent, "Total size: %dx%d" % (allPixels.getWidth(), allPixels.getHeight())
     for i, amp in enumerate(ccd):
-        biasSec = amp.getRawHorizontalOverscanBBox() 
-        dataSec = amp.getRawDataBBox() 
+        biasSec = amp.getRawHorizontalOverscanBBox()
+        dataSec = amp.getRawDataBBox()
 
         print indent, "   Amp: %s gain: %g" % (amp.getName(),
                                                amp.getGain())
 
-        print indent,"   bias sec: %dx%d+%d+%d" % (biasSec.getWidth(), biasSec.getHeight(),
+        print indent, "   bias sec: %dx%d+%d+%d" % (biasSec.getWidth(), biasSec.getHeight(),
                                                     biasSec.getMinX(), biasSec.getMinY())
 
         print indent, "   data sec: %dx%d+%d+%d" % (dataSec.getWidth(), dataSec.getHeight(),
-                                                     dataSec.getMinX(), dataSec.getMinY())
+                                                    dataSec.getMinX(), dataSec.getMinY())
         if i == 0:
             print
 
 #
 # Print a Camera
 #
+
+
 def printCamera(title, camera):
     """Print information about a camera
     @param title: title for camera output
@@ -227,18 +236,19 @@ def printCamera(title, camera):
 
 #************************************************************************************************************
 
+
 def main():
-    camera = makeCamera("SDSS") 
+    camera = makeCamera("SDSS")
 
     print
-    printCamera("", camera) 
+    printCamera("", camera)
 
     ccd = camera["r1"]
 
-    printCcd("Raw ", ccd, trimmed=False) 
+    printCcd("Raw ", ccd, trimmed=False)
 
     print
-    printCcd("Trimmed ", ccd, trimmed=True) 
+    printCcd("Trimmed ", ccd, trimmed=True)
 
 if __name__ == "__main__":
     main()

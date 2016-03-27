@@ -26,6 +26,7 @@ import lsst.afw.image as afwImage
 import lsst.afw.geom as afwGeom
 from lsst.pipe.tasks.processCcd import ProcessCcdTask
 
+
 class SdssNullIsrConfig(ProcessCcdTask.ConfigClass):
     """Config for SdssNullIsrTask"""
     removePedestal = pexConfig.Field(
@@ -60,18 +61,18 @@ class SdssNullIsrConfig(ProcessCcdTask.ConfigClass):
     )
 
 
-## \addtogroup LSST_task_documentation
-## \{
-## \page SdssNullIsrTask
-## \ref SdssNullIsrTask_ "SdssNullIsrTask"
-## \copybrief SdssNullIsrTask
-## \}
+# \addtogroup LSST_task_documentation
+# \{
+# \page SdssNullIsrTask
+# \ref SdssNullIsrTask_ "SdssNullIsrTask"
+# \copybrief SdssNullIsrTask
+# \}
 
 class SdssNullIsrTask(pipeBase.Task):
     """!Load SDSS post-ISR data from fpC, fpM, asTrans, etc. files
 
     @anchor SdssNullIsrTask_
-    
+
     @section pipe_tasks_sdssNullIsr_Contents  Contents
 
      - @ref pipe_tasks_sdssNullIsr_Purpose

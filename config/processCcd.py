@@ -41,5 +41,5 @@ config.calibrate.astrometry.forceKnownWcs = True
 # According to http://www.sdss.org/dr7/algorithms/photometry.html#photo_profile this corresponds to 18.58.
 # Note that 7.43/0.3961270 = 18.7566 <> 18.58. Why?
 
-#psf flux = ap flux at this radius. Will also be applied to galaxies Same everywhere'
-#config.calibrate.detectAndMeasure.measurement.algorithms['correctfluxes'].apCorrRadius = 18.58 #pixels
+# psf flux = ap flux at this radius. Will also be applied to galaxies Same everywhere'
+# config.calibrate.detectAndMeasure.measurement.algorithms['correctfluxes'].apCorrRadius = 18.58 #pixels

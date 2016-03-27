@@ -31,14 +31,17 @@ from lsst.pipe.tasks.selectImages import DatabaseSelectImagesConfig, BaseExposur
 
 __all__ = ["SelectSdssFluxMag0Task"]
 
+
 class SelectSdssFluxMag0Config(DatabaseSelectImagesConfig):
     """Config for SelectSdssFluxMag0Task
     """
+
     def setDefaults(self):
         DatabaseSelectImagesConfig.setDefaults(self)
         self.database = "krughoff_early_prod_11032012"
         self.host = "lsst-db.ncsa.illinois.edu"
         self.port = 3306
+
 
 class FluxMagInfo(BaseExposureInfo):
     """Data about a selected exposure
@@ -49,18 +52,19 @@ class FluxMagInfo(BaseExposureInfo):
     - fluxMag0: float
     - fluxMag0Sigma: float
     """
+
     def __init__(self, result):
         """Set exposure information based on a query result from a db connection
         """
         result = list(result)
         dataId = dict(
-           run = result.pop(0),
-           camcol = result.pop(0),
-           field = result.pop(0),
-           filter = result.pop(0),
+            run = result.pop(0),
+            camcol = result.pop(0),
+            field = result.pop(0),
+            filter = result.pop(0),
         )
         coordList = [IcrsCoord(afwGeom.Angle(result.pop(0), afwGeom.degrees),
-                                    afwGeom.Angle(result.pop(0), afwGeom.degrees)) for i in range(4)]
+                               afwGeom.Angle(result.pop(0), afwGeom.degrees)) for i in range(4)]
 
         BaseExposureInfo.__init__(self, dataId=dataId, coordList=coordList)
         self.fluxMag0 = result.pop(0)
@@ -73,17 +77,18 @@ class FluxMagInfo(BaseExposureInfo):
         @return database column names as list of strings
         """
         return (
-            "run camcol field  filterName".split() + \
-            "corner1Ra corner1Decl corner2Ra corner2Decl".split() + \
-            "corner3Ra corner3Decl corner4Ra corner4Decl".split() + \
+            "run camcol field  filterName".split() +
+            "corner1Ra corner1Decl corner2Ra corner2Decl".split() +
+            "corner3Ra corner3Decl corner4Ra corner4Decl".split() +
             "fluxMag0 fluxMag0Sigma".split()
         )
+
 
 class SelectSdssFluxMag0Task(pipeBase.Task):
     """Select SDSS data suitable for computing fluxMag0
     """
     ConfigClass = SelectSdssFluxMag0Config
-    _DefaultName= "selectFluxMag0"
+    _DefaultName = "selectFluxMag0"
 
     @pipeBase.timeMethod
     def run(self, dataId, coordList):
@@ -149,8 +154,8 @@ class SelectSdssFluxMag0Task(pipeBase.Task):
         cursor.execute(queryStr, dataTuple)
         exposureInfoList = [FluxMagInfo(result) for result in cursor]
         if self._display:
-            self.log.info("Found %d exposures" % \
-                      (len(exposureInfoList)))
+            self.log.info("Found %d exposures" %
+                          (len(exposureInfoList)))
 
         return pipeBase.Struct(
             fluxMagInfoList = exposureInfoList,

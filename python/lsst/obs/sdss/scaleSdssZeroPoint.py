@@ -30,12 +30,14 @@ from .selectFluxMag0 import SelectSdssFluxMag0Task
 
 __all__ = ["ScaleSdssZeroPointTask"]
 
+
 class SdssImageScaler(object):
     """Multiplicative image scaler using interpolation over a grid of points.
 
     This version only interpolates in the X direction; it is designed for SDSS Stripe82 images
     which scan along the X direction.
     """
+
     def __init__(self, interpStyle, xList, yList, scaleList):
         """Construct an SdssImageScaler
 
@@ -50,7 +52,7 @@ class SdssImageScaler(object):
         """
         if len(xList) != len(yList) or len(xList) != len(scaleList):
             raise RuntimeError(
-                "len(xList)=%s len(yList)=%s, len(scaleList)=%s but all lists must have the same length" % \
+                "len(xList)=%s len(yList)=%s, len(scaleList)=%s but all lists must have the same length" %
                 (len(xList), len(yList), len(scaleList)))
 
         self.interpStyle = getattr(afwMath.Interpolate, interpStyle)
@@ -73,7 +75,7 @@ class SdssImageScaler(object):
         """
 
         npoints = len(self._xList)
-        #sort by X coordinate
+        # sort by X coordinate
         if npoints < 1:
             raise RuntimeError("Cannot create scaling image. Found no fluxMag0s to interpolate")
 
@@ -98,6 +100,7 @@ class SdssImageScaler(object):
         image.setXY0(x0, y0)
         return image
 
+
 class ScaleSdssZeroPointConfig(ScaleZeroPointTask.ConfigClass):
     """Config for ScaleSdssZeroPointTask
     """
@@ -107,24 +110,25 @@ class ScaleSdssZeroPointConfig(ScaleZeroPointTask.ConfigClass):
     )
     interpStyle = pexConfig.ChoiceField(
         dtype = str,
-        doc = "Algorithm to interpolate the flux scalings;" \
+        doc = "Algorithm to interpolate the flux scalings;"
               "Maps to an enum; see afw.math.Interpolate",
         default = "NATURAL_SPLINE",
         allowed={
-             "CONSTANT" : "Use a single constant value",
-             "LINEAR" : "Use linear interpolation",
-             "CUBIC_SPLINE": "cubic spline",
-             "NATURAL_SPLINE" : "cubic spline with zero second derivative at endpoints",
-             "AKIMA_SPLINE": "higher-level nonlinear spline that is more robust to outliers",
-             }
+            "CONSTANT": "Use a single constant value",
+            "LINEAR": "Use linear interpolation",
+            "CUBIC_SPLINE": "cubic spline",
+            "NATURAL_SPLINE": "cubic spline with zero second derivative at endpoints",
+            "AKIMA_SPLINE": "higher-level nonlinear spline that is more robust to outliers",
+        }
     )
     bufferWidth = pexConfig.Field(
         dtype = float,
-        doc = "Buffer in the R.A. direction added to the region to be searched by selectFluxMag0" \
-        "Units are multiples of SDSS field widths (1489pix). (e.g. if the exposure is 1000x1000pixels, " \
+        doc = "Buffer in the R.A. direction added to the region to be searched by selectFluxMag0"
+        "Units are multiples of SDSS field widths (1489pix). (e.g. if the exposure is 1000x1000pixels, "
         "a bufferWidth of 2 results in a search region of 6956 x 1000, centered on the original position.",
         default = 3,
     )
+
 
 class ScaleSdssZeroPointTask(ScaleZeroPointTask):
     """Compute spatially varying scale factor to scale exposures to a desired photometric zero point
@@ -150,7 +154,7 @@ class ScaleSdssZeroPointTask(ScaleZeroPointTask):
         bbox = exposure.getBBox()
         buffer = int(self.config.bufferWidth * self.FIELD_WIDTH)
         biggerBbox = afwGeom.Box2I(afwGeom.Point2I(bbox.getBeginX()-buffer, bbox.getBeginY()),
-                                   afwGeom.Extent2I(bbox.getWidth()+ buffer + buffer, bbox.getHeight()))
+                                   afwGeom.Extent2I(bbox.getWidth() + buffer + buffer, bbox.getHeight()))
         cornerPosList = afwGeom.Box2D(biggerBbox).getCorners()
         coordList = [wcs.pixelToSky(pos) for pos in cornerPosList]
         fluxMagInfoList = self.selectFluxMag0.run(dataRef.dataId, coordList).fluxMagInfoList
@@ -160,14 +164,14 @@ class ScaleSdssZeroPointTask(ScaleZeroPointTask):
         scaleList = []
 
         for fluxMagInfo in fluxMagInfoList:
-            #find center of field in tract coordinates
+            # find center of field in tract coordinates
             if not fluxMagInfo.coordList:
                 raise RuntimeError("no x,y data for fluxMagInfo")
             ctr = afwGeom.Extent2D()
             for coord in fluxMagInfo.coordList:
-                #accumulate x, y
+                # accumulate x, y
                 ctr += afwGeom.Extent2D(wcs.skyToPixel(coord))
-            #and find average x, y as the center of the chip
+            # and find average x, y as the center of the chip
             ctr = afwGeom.Point2D(ctr / len(fluxMagInfo.coordList))
             xList.append(ctr.getX())
             yList.append(ctr.getY())
